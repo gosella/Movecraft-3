@@ -141,6 +141,39 @@ public class AsyncManager extends BukkitRunnable {
 
 				Player p = data.getPlayer();
 				Player notifyP = data.getNotificationPlayer();
+
+				if (data.newBlockList != null) {  // TODO: Remove this code - It's just for testing the new detection system compatibility.
+					MovecraftLocation[] newList = data.newBlockList;
+					MovecraftLocation[] oldList = data.getBlockList();
+					if (oldList != null) {
+						if (oldList.length != newList.length) {
+							Bukkit.getServer().broadcastMessage(String.format("blockList differs in length: old=%d, new=%d ", oldList.length, newList.length));
+						} else {
+							boolean differs = false;
+							for (int j = 0; j < oldList.length; j++) {
+								if (!oldList[j].equals(newList[j])) {
+									notifyP.sendMessage(ChatColor.DARK_PURPLE + String.format("blockList differs at %d: old=%s, new=%s ", j, oldList[j], newList[j]));
+									differs = true;
+								}
+							}
+							if (!differs) {
+								notifyP.sendMessage(ChatColor.DARK_GREEN + "blockLists seams fine!");
+								data.setBlockList(newList);
+							}
+						}
+					}
+					if (data.dynamicFlyBlockSpeedMultiplier != null) {
+						if (data.dynamicFlyBlockSpeedMultiplier != data.newDynamicFlyBlockSpeedMultiplier) {
+							notifyP.sendMessage(ChatColor.DARK_PURPLE +
+									String.format("dynamicFlyBlockSpeedMultiplier differs: %f != %f",
+											data.dynamicFlyBlockSpeedMultiplier, data.newDynamicFlyBlockSpeedMultiplier));
+						} else {
+							notifyP.sendMessage(ChatColor.DARK_GREEN +
+									String.format("dynamicFlyBlockSpeedMultiplier is OK: %f", data.dynamicFlyBlockSpeedMultiplier));
+						}
+					}
+				}
+
 				Craft pCraft = CraftManager.getInstance().getCraftByPlayer(p);
 
 				if (pCraft != null && p != null) {

@@ -35,6 +35,8 @@ public class DetectionTaskData {
 	private Integer[] allowedBlocks, forbiddenBlocks;
 	private String[] forbiddenSignStrings;
 	public Double dynamicFlyBlockSpeedMultiplier;
+	public double newDynamicFlyBlockSpeedMultiplier;
+	public MovecraftLocation[] newBlockList;
 
 	public DetectionTaskData( World w, Player player, Player notificationPlayer, Integer[] allowedBlocks, Integer[] forbiddenBlocks, String[] forbiddenSignStrings) {
 		this.w = w;
@@ -89,7 +91,7 @@ public class DetectionTaskData {
 		return blockList;
 	}
 
-	void setBlockList( MovecraftLocation[] blockList ) {
+	public void setBlockList( MovecraftLocation[] blockList ) {
 		this.blockList = blockList;
 	}
 

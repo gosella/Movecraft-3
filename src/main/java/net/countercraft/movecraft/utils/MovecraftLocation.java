@@ -82,9 +82,16 @@ public class MovecraftLocation {
 
 	@Override
 	public int hashCode() {
-		return Integer.valueOf(x).hashCode() >> 13
-				^ Integer.valueOf(y).hashCode() >> 7
-				^ Integer.valueOf(z).hashCode();
+		return (x >> 13) ^ (y >> 7) ^ z;
+	}
+
+	@Override
+	public String toString() {
+		return "MovecraftLocation{" +
+				"x=" + x +
+				", y=" + y +
+				", z=" + z +
+				'}';
 	}
 
 	public MovecraftLocation add( MovecraftLocation l ) {
@@ -94,5 +101,4 @@ public class MovecraftLocation {
 	public MovecraftLocation subtract( MovecraftLocation l ) {
 		return new MovecraftLocation( getX() - l.getX(), getY() - l.getY(), getZ() - l.getZ() );
 	}
-
 }

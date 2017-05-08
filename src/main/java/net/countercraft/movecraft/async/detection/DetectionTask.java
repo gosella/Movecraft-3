@@ -22,7 +22,6 @@ import com.palmergames.bukkit.towny.object.TownBlock;
 import com.palmergames.bukkit.towny.object.TownyWorld;
 import com.sk89q.worldguard.LocalPlayer;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.flags.StateFlag;
 
 import net.countercraft.movecraft.async.AsyncTask;
 import net.countercraft.movecraft.craft.Craft;
@@ -48,7 +47,6 @@ import net.countercraft.movecraft.utils.TownyUtils;
 import net.countercraft.movecraft.utils.TownyWorldHeightLimits;
 import net.countercraft.movecraft.utils.WGCustomFlagsUtils;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 public class DetectionTask extends AsyncTask {
@@ -75,37 +73,16 @@ public class DetectionTask extends AsyncTask {
 	private int foundDynamicFlyBlock=0;
 
 	public DetectionTask(Craft c, MovecraftLocation startLocation, int minSize, int maxSize, Integer[] allowedBlocks,
-			Integer[] forbiddenBlocks, Player player, Player notificationPlayer, World w,
-			String[] forbiddenSignStrings) {
-		super(c);
-		this.startLocation = startLocation;
-		this.minSize = minSize;
-		this.maxSize = maxSize;
-		data = new DetectionTaskData(w, player, notificationPlayer, allowedBlocks, forbiddenBlocks,
-				forbiddenSignStrings);
-
-		this.townyEnabled = Movecraft.getInstance().getTownyPlugin() != null;
-		if (townyEnabled && Settings.TownyBlockMoveOnSwitchPerm) {
-			this.townyWorld = TownyUtils.getTownyWorld(getCraft().getW());
-			if (townyWorld != null) {
-				this.townyEnabled = townyWorld.isUsingTowny();
-				if (townyEnabled)
-					townyWorldHeightLimits = TownyUtils.getWorldLimits(getCraft().getW());
-			}
-		} else {
-			this.townyEnabled = false;
-		}
-	}
-
-	public DetectionTask(Craft c, MovecraftLocation startLocation, int minSize, int maxSize, Integer[] allowedBlocks,
 			Integer[] forbiddenBlocks, String[] forbiddenSignStrings, Player player, Player notificationPlayer,
-			World w) {
+			World w, MovecraftLocation[] newBlockList, double dynamicFlyBlockSpeedMultiplier) {
 		super(c);
 		this.startLocation = startLocation;
 		this.minSize = minSize;
 		this.maxSize = maxSize;
 		data = new DetectionTaskData(w, player, notificationPlayer, allowedBlocks, forbiddenBlocks,
 				forbiddenSignStrings);
+		data.newBlockList = newBlockList;
+		data.newDynamicFlyBlockSpeedMultiplier = dynamicFlyBlockSpeedMultiplier;
 
 		this.townyEnabled = Movecraft.getInstance().getTownyPlugin() != null;
 		if (townyEnabled && Settings.TownyBlockMoveOnSwitchPerm) {

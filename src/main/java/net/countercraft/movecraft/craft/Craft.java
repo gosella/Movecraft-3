@@ -22,15 +22,15 @@ import net.countercraft.movecraft.async.detection.DetectionTask;
 import net.countercraft.movecraft.async.rotation.RotationTask;
 import net.countercraft.movecraft.async.translation.TranslationTask;
 import net.countercraft.movecraft.async.translation.TranslationTaskData;
+import net.countercraft.movecraft.config.Settings;
 import net.countercraft.movecraft.utils.MapUpdateCommand;
 import net.countercraft.movecraft.utils.MovecraftLocation;
 import net.countercraft.movecraft.utils.Rotation;
-
+import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -129,9 +129,66 @@ public class Craft {
 	public void setScheduledBlockChanges(HashMap<MapUpdateCommand, Long> scheduledBlockChanges) {
 		this.scheduledBlockChanges=scheduledBlockChanges;
 	}
-	
+
 	public void detect( Player player, Player notificationPlayer, MovecraftLocation startPoint ) {
-		AsyncManager.getInstance().submitTask( new DetectionTask( this, startPoint, type.getMinSize(), type.getMaxSize(), type.getAllowedBlocks(), type.getForbiddenBlocks(), type.getForbiddenSignStrings(), player, notificationPlayer, w ), this );
+		MovecraftLocation[] blockList = null;
+
+		final CraftDetector detector = new CraftDetector();
+		long startTime = System.nanoTime();
+		final boolean result = detector.detect(this, startPoint, player, notificationPlayer);
+		long endTime = System.nanoTime();
+
+		if (result) {
+			notificationPlayer.sendMessage("Detection succeeded! " + detector.getBlocksCount() + " blocks found.");
+
+			blockList = new MovecraftLocation[detector.getBlocksCount()];
+			int p = 0;
+			final boolean[] blocks = detector.getBlocks();
+			final int minX = detector.getMinX();
+			final int minY = detector.getMinY();
+			final int minZ = detector.getMinZ();
+			final int sizeX = detector.getSizeX();
+			final int sizeY = detector.getSizeY();
+			final int sizeZ = detector.getSizeZ();
+			for (int x = 0; x < sizeX; ++x) {
+				for (int z = 0; z < sizeZ; ++z) {
+					for (int y = 0; y < sizeY; ++y) {
+						if (blocks[x + z * sizeX + y * sizeX * sizeZ]) {
+							blockList[p] = new MovecraftLocation(minX + x, minY + y, minZ + z);
+							++p;
+						}
+					}
+				}
+			}
+
+			if(Settings.Debug) {
+				System.out.println(String.format("Min: (%d, %d, %d)", minX, minY, minZ));
+				System.out.println(String.format("Max: (%d, %d, %d)", minX + sizeX - 1, minY + sizeY - 1, minZ + sizeZ - 1));
+
+				StringBuilder builder = new StringBuilder("Result:\n");
+				p = 0;
+				for (int y = 0; y < sizeY; ++y) {
+					for (int z = 0; z < sizeZ; ++z) {
+						for (int x = 0; x < sizeX; ++x) {
+							builder.append(blocks[p++] ? '█' : '░');
+						}
+						builder.append('\n');
+					}
+					builder.append("\n\n");
+				}
+				System.out.print(builder.toString());
+
+				notificationPlayer.sendMessage(ChatColor.GOLD + String.format("Detection time: %.2f ms", (endTime - startTime) / 1e6));
+			}
+		} else {
+			notificationPlayer.sendMessage("Detection failed!");
+		}
+
+		AsyncManager.getInstance().submitTask( new DetectionTask(
+				this, startPoint, type.getMinSize(), type.getMaxSize(),
+				type.getAllowedBlocks(), type.getForbiddenBlocks(), type.getForbiddenSignStrings(),
+				player, notificationPlayer, w, blockList, detector.getDynamicFlyBlockSpeedMultiplier()
+			),this );
 	}
 
 	public void translate( int dx, int dy, int dz ) {
